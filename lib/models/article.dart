@@ -3,8 +3,8 @@ class Article {
   final String title;
   final String description;
   final double price;
-  final String category; // extrait du champ category.name
-  final String image; // première image de la liste images
+  final String category;
+  final String image;
 
   Article({
     required this.id,

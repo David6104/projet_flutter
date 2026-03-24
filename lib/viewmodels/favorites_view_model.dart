@@ -1,29 +1,30 @@
-import 'package:flutter/foundation.dart';
-import '../repository/local_storage.dart';
+import 'package:flutter/material.dart';
+import '../models/article.dart';
+import '../services/local_storage.dart';
 
 class FavoritesViewModel extends ChangeNotifier {
-  final LocalStorage _store;
-  Set<int> _ids = {};
+  List<Article> _favorites = [];
+  List<Article> get favorites => _favorites;
 
-  FavoritesViewModel({LocalStorage? store}) : _store = store ?? LocalStorage();
+  FavoritesViewModel() {
+    loadFavorites();
+  }
 
-  Set<int> get ids => _ids;
-
-  Future<void> load() async {
-    _ids = (await _store.getFavorites()).toSet();
+  Future<void> loadFavorites() async {
+    _favorites = await LocalStorage.loadFavorites();
     notifyListeners();
   }
 
-  Future<void> toggle(int id) async {
-    if (_ids.contains(id)) {
-      await _store.removeFavorite(id);
-      _ids.remove(id);
+  void toggleFavorite(Article article) async {
+    final index = _favorites.indexWhere((a) => a.id == article.id);
+    if (index >= 0) {
+      _favorites.removeAt(index);
     } else {
-      await _store.addFavorite(id);
-      _ids.add(id);
+      _favorites.add(article);
     }
+    await LocalStorage.saveFavorites(_favorites); // Sauvegarde immédiate
     notifyListeners();
   }
 
-  bool isFav(int id) => _ids.contains(id);
+  bool isFavorite(int id) => _favorites.any((a) => a.id == id);
 }

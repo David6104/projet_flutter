@@ -1,40 +1,56 @@
-import 'package:flutter/foundation.dart';
-import '../repository/local_storage.dart';
+import 'package:flutter/material.dart';
+import '../models/article.dart';
+import '../services/local_storage.dart';
 
 class CartViewModel extends ChangeNotifier {
-  final LocalStorage _store;
-  Map<int, int> _cart = {};
+  List<Article> _cartItems = [];
+  List<Article> get cartItems => _cartItems;
 
-  CartViewModel({LocalStorage? store}) : _store = store ?? LocalStorage();
+  CartViewModel() {
+    loadCart();
+  }
 
-  Map<int, int> get cart => Map.unmodifiable(_cart);
-  int qty(int id) => _cart[id] ?? 0;
+  double get totalPrice => _cartItems.fold(0, (sum, item) => sum + item.price);
 
-  Future<void> load() async {
-    _cart = await _store.getCart();
+  Future<void> loadCart() async {
+    _cartItems = await LocalStorage.loadCart();
     notifyListeners();
   }
 
-  Future<void> add(int id) async {
-    final q = (_cart[id] ?? 0) + 1;
-    _cart[id] = q;
-    await _store.setCartQty(id, q);
+  void addToCart(Article article) async {
+    _cartItems.add(article);
+    await LocalStorage.saveCart(_cartItems);
     notifyListeners();
   }
 
-  Future<void> removeOne(int id) async {
-    final q = (_cart[id] ?? 0) - 1;
-    await _store.setCartQty(id, q);
-    if (q <= 0)
-      _cart.remove(id);
-    else
-      _cart[id] = q;
+  void removeFromCart(Article article) async {
+    _cartItems.removeWhere((a) => a.id == article.id);
+    await LocalStorage.saveCart(_cartItems);
     notifyListeners();
   }
 
-  Future<void> clear() async {
-    await _store.clearCart();
-    _cart.clear();
+  // CORRECTION : Validation du panier
+  Future<void> checkout() async {
+    if (_cartItems.isEmpty) return;
+
+    // 1. Récupérer l'historique existant
+    List<Map<String, dynamic>> history = await LocalStorage.loadHistory();
+
+    // 2. Créer une nouvelle commande
+    final newOrder = {
+      'date': DateTime.now().toIso8601String(),
+      'total': totalPrice,
+      'items': _cartItems.map((a) => a.toMap()).toList(),
+    };
+
+    // 3. Ajouter et sauvegarder l'historique
+    history.add(newOrder);
+    await LocalStorage.saveHistory(history);
+
+    // 4. Vider le panier
+    _cartItems.clear();
+    await LocalStorage.saveCart(_cartItems);
+
     notifyListeners();
   }
 }
