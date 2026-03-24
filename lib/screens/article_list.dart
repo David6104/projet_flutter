@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/article_view_model.dart';
 import '../viewmodels/favorites_view_model.dart';
-import '../viewmodels/cart_view_model.dart';
 import 'article_detail.dart';
 
 class ArticleList extends StatelessWidget {
@@ -10,48 +9,38 @@ class ArticleList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<ArticleViewModel>();
-    final fav = context.watch<FavoritesViewModel>();
-    final cart = context.watch<CartViewModel>();
+    final viewModel = context.watch<ArticleViewModel>();
+    final favViewModel = context.watch<FavoritesViewModel>();
 
-    if (vm.loading) return const Center(child: CircularProgressIndicator());
-    if (vm.error != null) return Center(child: Text('Erreur: ${vm.error}'));
-    final items = vm.articles;
+    if (viewModel.isLoading)
+      return const Center(child: CircularProgressIndicator());
+    if (viewModel.articles.isEmpty)
+      return const Center(child: Text('Aucun article.'));
 
     return ListView.builder(
-      itemCount: items.length,
-      itemBuilder: (c, i) {
-        final a = items[i];
-        final isFav = fav.isFav(a.id);
-        final q = cart.qty(a.id);
+      itemCount: viewModel.articles.length,
+      itemBuilder: (context, index) {
+        final article = viewModel.articles[index];
+        final isFav = favViewModel.isFavorite(article.id);
+
         return ListTile(
-          leading: CircleAvatar(
-            backgroundImage: a.image.isNotEmpty ? NetworkImage(a.image) : null,
+          leading: article.image.isNotEmpty
+              ? Image.network(article.image,
+                  width: 50, height: 50, fit: BoxFit.cover)
+              : const Icon(Icons.image, size: 50),
+          title: Text(article.title),
+          subtitle: Text('${article.price} €'),
+          trailing: IconButton(
+            icon: Icon(isFav ? Icons.favorite : Icons.favorite_border,
+                color: Colors.red),
+            onPressed: () => favViewModel.toggleFavorite(article),
           ),
-          title: Text(a.title),
-          subtitle: Text('${a.category} • ${a.price.toStringAsFixed(2)} €'),
-          onTap: () => Navigator.push(
-            c,
-            MaterialPageRoute(builder: (_) => ArticleDetail(article: a)),
-          ),
-          trailing: Wrap(
-            spacing: 8,
-            children: [
-              IconButton(
-                icon: Icon(
-                  isFav ? Icons.favorite : Icons.favorite_border,
-                  color: isFav ? Colors.red : null,
-                ),
-                onPressed: () => fav.toggle(a.id),
-                tooltip: isFav ? 'Retirer des favoris' : 'Ajouter aux favoris',
-              ),
-              IconButton(
-                icon: const Icon(Icons.add_shopping_cart),
-                onPressed: () => cart.add(a.id),
-                tooltip: q > 0 ? 'Quantité: $q' : 'Ajouter au panier',
-              ),
-            ],
-          ),
+          onTap: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => ArticleDetail(article: article)));
+          },
         );
       },
     );

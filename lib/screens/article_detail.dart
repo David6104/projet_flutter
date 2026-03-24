@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/article.dart';
-import '../viewmodels/favorites_view_model.dart';
 import '../viewmodels/cart_view_model.dart';
+import '../viewmodels/favorites_view_model.dart';
 
 class ArticleDetail extends StatelessWidget {
   final Article article;
@@ -10,44 +10,68 @@ class ArticleDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fav = context.watch<FavoritesViewModel>();
-    final cart = context.watch<CartViewModel>();
-    final isFav = fav.isFav(article.id);
-    final q = cart.qty(article.id);
+    final isFav = context.watch<FavoritesViewModel>().isFavorite(article.id);
 
     return Scaffold(
-      appBar: AppBar(title: Text(article.title)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          if (article.image.isNotEmpty)
-            Image.network(article.image, height: 220, fit: BoxFit.cover),
-          const SizedBox(height: 12),
-          Text(
-            '${article.price.toStringAsFixed(2)} €',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          Text(article.description),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              ElevatedButton.icon(
-                onPressed: () => fav.toggle(article.id),
-                icon: Icon(isFav ? Icons.favorite : Icons.favorite_border),
-                label: Text(
-                  isFav ? 'Retirer des favoris' : 'Ajouter aux favoris',
-                ),
-              ),
-              const SizedBox(width: 12),
-              ElevatedButton.icon(
-                onPressed: () => cart.add(article.id),
-                icon: const Icon(Icons.add_shopping_cart),
-                label: Text(q > 0 ? 'Quantité: $q' : 'Ajouter au panier'),
-              ),
-            ],
-          ),
+      appBar: AppBar(
+        title: Text(article.title),
+        actions: [
+          IconButton(
+            icon: Icon(isFav ? Icons.favorite : Icons.favorite_border,
+                color: Colors.red),
+            onPressed: () =>
+                context.read<FavoritesViewModel>().toggleFavorite(article),
+          )
         ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            article.image.isNotEmpty
+                ? Image.network(article.image,
+                    height: 300,
+                    fit: BoxFit.cover,
+                    errorBuilder: (ctx, err, stack) =>
+                        const Icon(Icons.image_not_supported, size: 100))
+                : const SizedBox(
+                    height: 300, child: Icon(Icons.image, size: 100)),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(article.title,
+                      style: const TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  Text('${article.price} €',
+                      style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green)),
+                  const SizedBox(height: 10),
+                  Chip(label: Text(article.category)),
+                  const SizedBox(height: 20),
+                  Text(article.description,
+                      style: const TextStyle(fontSize: 16)),
+                  const SizedBox(height: 30),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context.read<CartViewModel>().addToCart(article);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Ajouté au panier !')));
+                    },
+                    icon: const Icon(Icons.add_shopping_cart),
+                    label: const Text('Ajouter au panier'),
+                    style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50)),
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
