@@ -15,25 +15,23 @@ class Article {
     required this.image,
   });
 
-  // CORRECTION : Renommé en fromJson et adapté pour lire à la fois depuis l'API et depuis SharedPreferences
   factory Article.fromJson(Map<String, dynamic> m) {
     return Article(
-      id: m['id'] as int,
-      title: m['title'] as String,
-      description: m['description'] as String,
-      price: (m['price'] as num).toDouble(),
+      id: m['id'] as int? ?? 0,
+      title: m['title']?.toString() ?? 'Sans titre',
+      description: m['description']?.toString() ?? 'Pas de description',
+      price: (m['price'] ?? 0).toDouble(),
+      // Gère à la fois l'ancien format Platzi et le nouveau format Supabase
       category: m['category'] is Map<String, dynamic>
           ? (m['category']['name'] ?? '').toString()
           : m['category']?.toString() ?? 'Inconnue',
-      // Gère le format API (liste "images") et le format Local (string "image")
-      image: m['image'] ??
+      image: m['image']?.toString() ??
           (m['images'] is List && (m['images'] as List).isNotEmpty
               ? (m['images'] as List).first.toString()
               : ''),
     );
   }
 
-  // CORRECTION : Ajout de la méthode toMap() indispensable pour SharedPreferences
   Map<String, dynamic> toMap() {
     return {
       'id': id,

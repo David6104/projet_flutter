@@ -1,41 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'router/app_router.dart';
 import 'theme/my_theme.dart';
-import 'screens/home.dart';
-import 'screens/welcome_screen.dart';
-import 'services/local_storage.dart';
 import 'viewmodels/article_view_model.dart';
 import 'viewmodels/favorites_view_model.dart';
 import 'viewmodels/cart_view_model.dart';
 import 'viewmodels/user_view_model.dart';
 
 void main() async {
-  WidgetsFlutterBinding
-      .ensureInitialized(); // Requis pour SharedPreferences avant runApp
-  bool hideWelcome = await LocalStorage.shouldHideWelcomeScreen();
+  // Nécessaire car nous appelons du code asynchrone avant runApp
+  WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(Bloc2App(hideWelcome: hideWelcome));
+  // Initialisation de VOTRE base de données Supabase
+  await Supabase.initialize(
+    url:
+        'https://uhmrkvtfvywprnccdqmu.supabase.co', // Corrigé (sans le /rest/v1/)
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVobXJrdnRmdnl3cHJuY2NkcW11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5ODUwMzAsImV4cCI6MjA5MzU2MTAzMH0.SWkJBOUhQyMu5F2D0qNch486eCHxLGv229gPs0gMXMo',
+  );
+
+  runApp(const Bloc2App());
 }
 
 class Bloc2App extends StatelessWidget {
-  final bool hideWelcome;
-  const Bloc2App({super.key, required this.hideWelcome});
+  const Bloc2App({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => UserViewModel()),
         ChangeNotifierProvider(create: (_) => ArticleViewModel()),
         ChangeNotifierProvider(create: (_) => FavoritesViewModel()),
         ChangeNotifierProvider(create: (_) => CartViewModel()),
-        ChangeNotifierProvider(create: (_) => UserViewModel()),
       ],
-      child: MaterialApp(
+      // Utilisation de MaterialApp.router pour activer go_router
+      child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
         theme: MyTheme.light(),
         darkTheme: MyTheme.dark(),
         title: 'Bloc2 Store',
-        home: hideWelcome ? const Home() : const WelcomeScreen(),
+        routerConfig: appRouter, // Connecte la navigation complexe ici
       ),
     );
   }
