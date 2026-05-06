@@ -1,23 +1,31 @@
-import 'package:flutter/foundation.dart';
-import '../repository/auth_repository.dart';
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/supabase_service.dart';
 
 class UserViewModel extends ChangeNotifier {
-  final AuthRepository _repo;
-  bool _logged = false;
+  User? _user;
+  User? get user => _user;
+  bool get isAuthenticated => _user != null;
 
-  UserViewModel({AuthRepository? repo}) : _repo = repo ?? AuthRepository();
-
-  bool get logged => _logged;
-
-  Future<bool> login(String email, String password) async {
-    final ok = await _repo.login(email, password);
-    _logged = ok;
-    notifyListeners();
-    return ok;
+  UserViewModel() {
+    _user = SupabaseService.currentUser;
   }
 
-  void logout() {
-    _logged = false;
+  Future<void> login(String email, String password) async {
+    final response = await SupabaseService.signIn(email, password);
+    _user = response.user;
+    notifyListeners();
+  }
+
+  Future<void> register(String email, String password) async {
+    final response = await SupabaseService.signUp(email, password);
+    _user = response.user;
+    notifyListeners();
+  }
+
+  Future<void> logout() async {
+    await SupabaseService.signOut();
+    _user = null;
     notifyListeners();
   }
 }

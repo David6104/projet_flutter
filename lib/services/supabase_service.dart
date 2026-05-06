@@ -26,14 +26,12 @@ class SupabaseService {
     return data.map((json) => Article.fromJson(json)).toList();
   }
 
-  // --- RECHERCHE (Point 7) ---
   static Future<List<Article>> searchArticles(String query) async {
-    final List<dynamic> data = await client.from('articles').select().ilike(
-        'title', '%$query%'); // Cherche le texte, peu importe les majuscules
+    final List<dynamic> data =
+        await client.from('articles').select().ilike('title', '%$query%');
     return data.map((json) => Article.fromJson(json)).toList();
   }
 
-  // --- AJOUT D'ARTICLE (Point 6) ---
   static Future<void> addArticle({
     required String title,
     required String description,
@@ -50,16 +48,54 @@ class SupabaseService {
     });
   }
 
-  // --- COMMANDES (Historique) ---
+  // Sauvegarder le panier de l'utilisateur connecté
+  static Future<void> syncCart(List<Article> cartItems) async {
+    final user = currentUser;
+    if (user == null) return; // Ne rien faire si non connecté
+
+    final itemsJson = cartItems.map((a) => a.toMap()).toList();
+
+    // Upsert = Insert si ça n'existe pas, Update si ça existe
+    await client.from('user_carts').upsert({
+      'user_id': user.id,
+      'items': itemsJson,
+    });
+  }
+
+  // Récupérer le panier de l'utilisateur au démarrage
+  static Future<List<Article>> getUserCart() async {
+    final user = currentUser;
+    if (user == null) return [];
+
+    try {
+      final data = await client
+          .from('user_carts')
+          .select('items')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+      if (data == null || data['items'] == null) return [];
+
+      final List<dynamic> items = data['items'];
+      return items.map((json) => Article.fromJson(json)).toList();
+    } catch (e) {
+      print('Erreur récupération panier: $e');
+      return [];
+    }
+  }
+
+  // --- COMMANDES ---
   static Future<void> saveOrder(double total, List<Article> items) async {
     final user = currentUser;
-    if (user == null)
-      throw Exception("Vous devez être connecté pour valider le panier.");
+    if (user == null) throw Exception("Vous devez être connecté.");
 
     await client.from('orders').insert({
       'user_id': user.id,
       'total': total,
       'items': items.map((a) => a.toMap()).toList(),
     });
+
+    // On vide le panier distant après la commande
+    await syncCart([]);
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart'; // On importe go_router
 import '../services/local_storage.dart';
-import 'home.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -14,11 +14,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   void _continue() async {
     if (_dontShowAgain) {
+      // Sauvegarde le choix de l'utilisateur
       await LocalStorage.setHideWelcomeScreen(true);
     }
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const Home()),
-    );
+
+    // LA CORRECTION EST ICI : On utilise go_router pour aller vers l'accueil
+    if (mounted) {
+      context.go('/');
+    }
   }
 
   @override
@@ -32,11 +35,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             children: [
               const Icon(Icons.store, size: 100, color: Colors.blue),
               const SizedBox(height: 20),
-              const Text('Bienvenue sur Bloc2 Store !',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const Text(
+                'Bienvenue sur Bloc2 Store !',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 10),
-              const Text('Achetez et vendez vos articles en toute simplicité.',
-                  textAlign: TextAlign.center),
+              const Text(
+                'Achetez et vendez vos articles en toute simplicité.',
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -49,8 +56,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ],
               ),
               ElevatedButton(
-                onPressed: _continue,
-                child: const Text('Commencer'),
+                onPressed: _continue, // Appelle notre fonction corrigée
+                style: ElevatedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                ),
+                child: const Text('Commencer', style: TextStyle(fontSize: 18)),
               )
             ],
           ),
