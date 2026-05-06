@@ -15,8 +15,7 @@ void main() async {
 
   // Initialisation de VOTRE base de données Supabase
   await Supabase.initialize(
-    url:
-        'https://uhmrkvtfvywprnccdqmu.supabase.co', // Corrigé (sans le /rest/v1/)
+    url: 'https://uhmrkvtfvywprnccdqmu.supabase.co',
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVobXJrdnRmdnl3cHJuY2NkcW11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5ODUwMzAsImV4cCI6MjA5MzU2MTAzMH0.SWkJBOUhQyMu5F2D0qNch486eCHxLGv229gPs0gMXMo',
   );

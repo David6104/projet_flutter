@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/article.dart';
-import '../services/supabase_service.dart'; // On importe notre service Supabase
+import '../services/supabase_service.dart';
 
 class ArticleViewModel extends ChangeNotifier {
   List<Article> _articles = [];
@@ -14,10 +14,10 @@ class ArticleViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // C'EST ICI QUE TOUT CHANGE : On utilise SupabaseService au lieu du repo API
+      // Appelle la méthode getArticles() du service
       _articles = await SupabaseService.getArticles();
     } catch (e) {
-      print("Erreur de chargement Supabase : $e");
+      debugPrint("Erreur lors du chargement des articles : $e");
     }
 
     _isLoading = false;
