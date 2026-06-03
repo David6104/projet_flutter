@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/models/article.dart';
-import '../lib/viewmodels/cart_view_model.dart';
-
+import 'package:projet_flutter/models/article.dart';
+import 'package:projet_flutter/viewmodels/cart_view_model.dart';
 void main() {
   group('Tests du Panier (CartViewModel)', () {
     late CartViewModel cartVM;
