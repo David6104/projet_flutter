@@ -43,7 +43,7 @@ class CartViewModel extends ChangeNotifier {
       _cartItems.clear();
       notifyListeners();
 
-      // 3. LA CORRECTION : On synchronise le panier VIDE avec Supabase
+      // 3. Synchronise le panier vide avec Supabase
       await SupabaseService.syncCart(_cartItems);
     } catch (e) {
       throw Exception("Erreur lors de la validation : $e");

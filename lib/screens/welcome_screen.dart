@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart'; // On importe go_router
+import 'package:go_router/go_router.dart';
 import '../services/local_storage.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -18,7 +18,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       await LocalStorage.setHideWelcomeScreen(true);
     }
 
-    // LA CORRECTION EST ICI : On utilise go_router pour aller vers l'accueil
     if (mounted) {
       context.go('/');
     }
@@ -56,7 +55,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ],
               ),
               ElevatedButton(
-                onPressed: _continue, // Appelle notre fonction corrigée
+                onPressed: _continue,
                 style: ElevatedButton.styleFrom(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 40, vertical: 15),

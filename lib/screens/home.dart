@@ -1,55 +1,63 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../viewmodels/article_view_model.dart';
-import '../viewmodels/favorites_view_model.dart';
-import '../viewmodels/cart_view_model.dart';
 import 'article_list.dart';
-import 'favorites.dart';
 import 'cart.dart';
-import 'profile.dart'; // Le nouvel onglet
+import 'favorites.dart';
+import 'profile.dart';
+import 'article_search_delegate.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
+
   @override
   State<Home> createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
-  int _idx = 0;
-  final _pages = const [
-    ArticleList(),
-    FavoritesScreen(),
-    CartScreen(),
-    ProfileScreen() // Ajout de la page profil
+  int _currentIndex = 0;
+
+  final List<Widget> _screens = [
+    const ArticleList(),
+    const CartScreen(),
+    const FavoritesScreen(),
+    const ProfileScreen(),
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await context.read<ArticleViewModel>().load();
-      await context.read<FavoritesViewModel>().loadFavorites();
-      await context.read<CartViewModel>().loadCart();
-    });
-  }
+  final List<String> _titles = [
+    'Bloc2 Store',
+    'Mon Panier',
+    'Mes Favoris',
+    'Mon Profil',
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Bloc2 Store')),
-      body: _pages[_idx],
+      appBar: AppBar(
+        title: Text(_titles[_currentIndex]),
+        actions: [
+          if (_currentIndex == 0)
+            IconButton(
+              icon: const Icon(Icons.search, size: 28),
+              tooltip: 'Rechercher un article',
+              onPressed: () {
+                showSearch(
+                  context: context,
+                  delegate: ArticleSearchDelegate(),
+                );
+              },
+            ),
+        ],
+      ),
+      body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _idx,
-        type: BottomNavigationBarType
-            .fixed, // Nécessaire quand on a plus de 3 onglets
-        onTap: (i) => setState(() => _idx = i),
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.store), label: 'Articles'),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Panier'),
           BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favoris'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart), label: 'Panier'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.person), label: 'Profil'), // Nouvel icône
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
         ],
       ),
     );
