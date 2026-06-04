@@ -6,36 +6,39 @@ import '../viewmodels/favorites_view_model.dart';
 
 class ArticleDetail extends StatelessWidget {
   final Article article;
+
   const ArticleDetail({super.key, required this.article});
 
   @override
   Widget build(BuildContext context) {
-    final isFav = context.watch<FavoritesViewModel>().isFavorite(article.id);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(article.title),
         actions: [
           IconButton(
-            icon: Icon(isFav ? Icons.favorite : Icons.favorite_border,
-                color: Colors.red),
-            onPressed: () =>
-                context.read<FavoritesViewModel>().toggleFavorite(article),
+            icon: const Icon(Icons.favorite_border),
+            onPressed: () {
+              context.read<FavoritesViewModel>().toggleFavorite(article);
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Favoris mis à jour')));
+            },
           )
         ],
       ),
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            article.image.isNotEmpty
-                ? Image.network(article.image,
-                    height: 300,
-                    fit: BoxFit.cover,
-                    errorBuilder: (ctx, err, stack) =>
-                        const Icon(Icons.image_not_supported, size: 100))
-                : const SizedBox(
-                    height: 300, child: Icon(Icons.image, size: 100)),
+            SizedBox(
+              width: double.infinity,
+              height: 300,
+              child: Image.network(
+                article.image,
+                fit: BoxFit.cover,
+                errorBuilder: (c, e, s) =>
+                    const Center(child: Icon(Icons.broken_image, size: 100)),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -43,29 +46,49 @@ class ArticleDetail extends StatelessWidget {
                 children: [
                   Text(article.title,
                       style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.bold)),
+                          fontSize: 24, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
+
+                  // LE WIDGET CHIP CATÉGORIE
+                  Chip(
+                    label: Text(
+                      article.category,
+                      style: const TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    backgroundColor: Colors.blueAccent,
+                  ),
+
+                  const SizedBox(height: 15),
                   Text('${article.price} €',
                       style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green)),
-                  const SizedBox(height: 10),
-                  Chip(label: Text(article.category)),
+                          fontSize: 22,
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold)),
                   const SizedBox(height: 20),
+                  const Text('Description',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
                   Text(article.description,
                       style: const TextStyle(fontSize: 16)),
                   const SizedBox(height: 30),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      context.read<CartViewModel>().addToCart(article);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Ajouté au panier !')));
-                    },
-                    icon: const Icon(Icons.add_shopping_cart),
-                    label: const Text('Ajouter au panier'),
-                    style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 50)),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.shopping_cart),
+                      label: const Text('Ajouter au panier',
+                          style: TextStyle(fontSize: 18)),
+                      onPressed: () {
+                        context.read<CartViewModel>().addToCart(article);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text('${article.title} ajouté au panier')),
+                        );
+                      },
+                    ),
                   )
                 ],
               ),
